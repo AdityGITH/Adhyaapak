@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Text Reader</title>
+</head>
+<body>
+
+    <h2>Upload Image</h2>
+
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="image" required>
+        <button type="submit">Process Image</button>
+    </form>
+
+    {% if text %}
+        <h3>Extracted Text:</h3>
+        <p>{{ text }}</p>
+    {% endif %}
+
+</body>
+</html>
