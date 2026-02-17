@@ -2,20 +2,128 @@
 <html>
 <head>
     <title>Image Text Reader</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 420px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .upload-box {
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 25px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+
+        .upload-box:hover {
+            background: #f5f7ff;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background: #5563c1;
+        }
+
+        .preview {
+            margin-top: 15px;
+        }
+
+        .preview img {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+
+        .result {
+            margin-top: 20px;
+            background: #f5f7ff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .result h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .result p {
+            margin: 0;
+            color: #444;
+        }
+    </style>
 </head>
+
 <body>
 
-    <h2>Upload Image</h2>
+    <div class="container">
+        <h2>📄 Image Text Reader</h2>
 
-    <form action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="image" required>
-        <button type="submit">Process Image</button>
-    </form>
+        <form action="/upload" method="post" enctype="multipart/form-data">
 
-    {% if text %}
-        <h3>Extracted Text:</h3>
-        <p>{{ text }}</p>
-    {% endif %}
+            <label class="upload-box">
+                📂 Click to Upload Image
+                <input type="file" name="image" accept="image/*" onchange="previewImage(event)" required>
+            </label>
+
+            <button class="btn" type="submit">🚀 Process Image</button>
+        </form>
+
+        <div class="preview" id="preview"></div>
+
+        {% if text %}
+        <div class="result">
+            <h3>Extracted Text:</h3>
+            <p>{{ text }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function previewImage(event) {
+            const preview = document.getElementById('preview');
+            preview.innerHTML = "";
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(event.target.files[0]);
+            preview.appendChild(img);
+        }
+    </script>
 
 </body>
 </html>
