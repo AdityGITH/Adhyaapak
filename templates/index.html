@@ -4,10 +4,14 @@
     <title>Image Text Reader</title>
 
     <style>
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         margin: 0;
         font-family: "Segoe UI", sans-serif;
-        background: radial-gradient(circle at center, #0f0f17, #07070c);
+        background: #0f172a;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -16,105 +20,91 @@
       }
 
       .container {
-        background: rgba(20, 20, 35, 0.85);
-        border-radius: 18px;
-        padding: 35px 35px 30px;
-        width: 480px;
-        box-shadow: 0 0 50px rgba(124, 58, 237, 0.35);
+        background: #111827;
+        border-radius: 16px;
+        padding: 35px;
+        width: 420px;
         text-align: center;
-        border: 1px solid rgba(192, 132, 252, 0.15);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
       }
 
       h2 {
-        margin: 0 0 35px 0;
+        margin-bottom: 25px;
         font-weight: 500;
-        color: #c084fc;
-        font-size: 22px;
+        font-size: 20px;
       }
 
+      /* REAL upload area */
       .upload-box {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(192, 132, 252, 0.25);
+        border: 2px dashed rgba(255, 255, 255, 0.2);
         border-radius: 12px;
-        padding: 18px;
+        padding: 30px 20px;
         cursor: pointer;
         transition: 0.25s;
-        margin-bottom: 20px;
+        background: rgba(255, 255, 255, 0.02);
       }
 
       .upload-box:hover {
-        background: rgba(192, 132, 252, 0.08);
-        border-color: #c084fc;
+        border-color: #7c3aed;
+        background: rgba(124, 58, 237, 0.08);
       }
 
-      .upload-title {
-        font-size: 15px;
-        margin-bottom: 6px;
+      .upload-icon {
+        font-size: 28px;
+        margin-bottom: 10px;
       }
 
-      .upload-subtitle {
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.5);
+      .upload-text {
+        font-size: 14px;
+        opacity: 0.8;
       }
 
       input[type="file"] {
-        display: none;
+        margin-top: 15px;
+        color: white;
+        font-size: 12px;
       }
 
       .btn {
-        background: linear-gradient(135deg, #7c3aed, #c084fc);
-        color: white;
+        margin-top: 18px;
+        background: #7c3aed;
         border: none;
-        padding: 13px;
-        border-radius: 10px;
-        cursor: pointer;
-        font-size: 15px;
+        padding: 12px;
         width: 100%;
+        border-radius: 10px;
+        color: white;
+        font-size: 14px;
+        cursor: pointer;
         transition: 0.25s;
       }
 
       .btn:hover {
-        box-shadow: 0 0 25px rgba(192, 132, 252, 0.45);
-        transform: translateY(-1px);
+        background: #6d28d9;
       }
 
       .preview {
-        margin-top: 18px;
+        margin-top: 20px;
       }
 
       .preview img {
         max-width: 100%;
         border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
       }
 
       .result {
         margin-top: 22px;
-        background: rgba(192, 132, 252, 0.08);
-        padding: 16px;
-        border-radius: 12px;
+        background: rgba(124, 58, 237, 0.1);
+        padding: 14px;
+        border-radius: 10px;
         text-align: left;
-        border: 1px solid rgba(192, 132, 252, 0.25);
-      }
-
-      .result h3 {
-        margin: 0 0 10px 0;
-        color: #c084fc;
-        font-size: 14px;
-        font-weight: 500;
-      }
-
-      .result p {
-        margin: 0;
-        color: #e5e5e5;
         font-size: 13px;
-        line-height: 1.6;
+        line-height: 1.5;
       }
 
       .footer {
-        margin-top: 18px;
+        margin-top: 15px;
         font-size: 11px;
-        color: rgba(255, 255, 255, 0.35);
+        opacity: 0.4;
       }
     </style>
   </head>
@@ -124,10 +114,11 @@
       <h2>AI Image Text Reader</h2>
 
       <form action="/upload" method="post" enctype="multipart/form-data">
-        <label class="upload-box">
-          <div class="upload-title">📂 Upload Image</div>
-          <div class="upload-subtitle">Click to select an image</div>
+        <div class="upload-box">
+          <div class="upload-icon">📂</div>
+          <div class="upload-text">Select an image</div>
 
+          <!-- IMPORTANT CHANGE HERE -->
           <input
             type="file"
             name="image"
@@ -135,21 +126,21 @@
             onchange="previewImage(event)"
             required
           />
-        </label>
+        </div>
 
-        <button class="btn" type="submit">🚀 Extract Text</button>
+        <button class="btn" type="submit">Extract Text</button>
       </form>
 
       <div class="preview" id="preview"></div>
 
       {% if text %}
       <div class="result">
-        <h3>Extracted Text</h3>
-        <p>{{ text }}</p>
+        <strong>Extracted Text:</strong><br /><br />
+        {{ text }}
       </div>
       {% endif %}
 
-      <div class="footer">Powered by EasyOCR ⚡</div>
+      <div class="footer">Powered by EasyOCR</div>
     </div>
 
     <script>
