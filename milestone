@@ -12,7 +12,8 @@ DONE
 * Milestone 2  Text Meaning Generator
 what is huggingFace Transformer
 USE  -  summarization model   O R   text generation model
-Can use Flan T5
+
+Can use Flan T5 - an open-source, instruction-tuned encoder-decoder language model developed by Google, based on the T5 (Text-to-Text Transfer Transformer) architecture. It is fine-tuned on over 1,000 diverse tasks, including reasoning and summarization, to significantly improve zero-shot and few-shot performance on unseen tasks compared to standard T5 models
 
 
 
