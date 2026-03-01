@@ -138,6 +138,11 @@
         <strong>Extracted Text:</strong><br /><br />
         {{ text }}
       </div>
+      {% endif %} {% if meaning %}
+      <div class="result">
+        <strong>Meaning:</strong><br /><br />
+        {{ meaning }}
+      </div>
       {% endif %}
 
       <div class="footer">Powered by EasyOCR</div>
