@@ -11,7 +11,15 @@
       body {
         margin: 0;
         font-family: "Segoe UI", sans-serif;
-        background: #0f172a;
+
+        background:
+          linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+          url("/static/bg.jpg");
+
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+
         display: flex;
         justify-content: center;
         align-items: center;
@@ -20,7 +28,8 @@
       }
 
       .container {
-        background: #111827;
+        background: rgba(17, 24, 39, 0.7);
+        backdrop-filter: blur(10px);
         border-radius: 16px;
         padding: 35px;
         width: 420px;
