@@ -1,16 +1,38 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import easyocr
 import os
+import sqlite3
 from transformers import T5Tokenizer, T5ForConditionalGeneration
 import torch
 
 app = Flask(__name__)
-app.secret_key = "secret123"   # needed for login session
+app.secret_key = "secret123"
 
 UPLOAD_FOLDER = "uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# ---------------- DATABASE ----------------
+def init_db():
+    conn = sqlite3.connect("users.db")
+    c = conn.cursor()
+
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS users(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE,
+        password TEXT
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+init_db()
+
+# ---------------- OCR MODEL ----------------
 reader = easyocr.Reader(['en'])
 
+# ---------------- LLM MODEL ----------------
 model_name = "google/flan-t5-small"
 tokenizer = T5Tokenizer.from_pretrained(model_name)
 model = T5ForConditionalGeneration.from_pretrained(model_name)
@@ -19,7 +41,36 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
 
-# -------- LOGIN PAGE --------
+# ---------------- REGISTER PAGE ----------------
+@app.route('/register', methods=['GET','POST'])
+def register():
+
+    if request.method == 'POST':
+
+        username = request.form['username']
+        password = request.form['password']
+
+        conn = sqlite3.connect("users.db")
+        c = conn.cursor()
+
+        try:
+            c.execute(
+                "INSERT INTO users (username,password) VALUES (?,?)",
+                (username,password)
+            )
+
+            conn.commit()
+            conn.close()
+
+            return redirect(url_for('login'))
+
+        except:
+            return "Username already exists"
+
+    return render_template("register.html")
+
+
+# ---------------- LOGIN PAGE ----------------
 @app.route('/login', methods=['GET','POST'])
 def login():
 
@@ -28,8 +79,18 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        # simple login check
-        if username == "admin" and password == "1234":
+        conn = sqlite3.connect("users.db")
+        c = conn.cursor()
+
+        c.execute(
+            "SELECT * FROM users WHERE username=? AND password=?",
+            (username,password)
+        )
+
+        user = c.fetchone()
+        conn.close()
+
+        if user:
             session['user'] = username
             return redirect(url_for('home'))
 
@@ -38,7 +99,7 @@ def login():
     return render_template("login.html")
 
 
-# -------- HOME PAGE --------
+# ---------------- HOME PAGE ----------------
 @app.route('/')
 def home():
 
@@ -48,14 +109,15 @@ def home():
     return render_template("index.html")
 
 
-# -------- LOGOUT --------
+# ---------------- LOGOUT ----------------
 @app.route('/logout')
 def logout():
+
     session.pop('user', None)
     return redirect(url_for('login'))
 
 
-# -------- IMAGE UPLOAD --------
+# ---------------- IMAGE UPLOAD ----------------
 @app.route('/upload', methods=['POST'])
 def upload():
 
@@ -65,10 +127,12 @@ def upload():
     image = request.files['image']
 
     if image:
+
         image_path = os.path.join(UPLOAD_FOLDER, image.filename)
         image.save(image_path)
 
         result = reader.readtext(image_path)
+
         extracted_text = " ".join([res[1] for res in result])
 
         if extracted_text.strip() == "":
@@ -76,9 +140,14 @@ def upload():
             meaning = ""
 
         else:
+
             prompt = f"Explain the meaning of this text in simple English: {extracted_text}"
 
-            inputs = tokenizer(prompt, return_tensors="pt", truncation=True).to(device)
+            inputs = tokenizer(
+                prompt,
+                return_tensors="pt",
+                truncation=True
+            ).to(device)
 
             outputs = model.generate(
                 **inputs,
@@ -89,10 +158,15 @@ def upload():
 
             meaning = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-        return render_template("index.html", text=extracted_text, meaning=meaning)
+        return render_template(
+            "index.html",
+            text=extracted_text,
+            meaning=meaning
+        )
 
     return render_template("index.html")
 
 
+# ---------------- RUN SERVER ----------------
 if __name__ == "__main__":
     app.run(debug=True)
