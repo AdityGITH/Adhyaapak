@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session
 import easyocr
 import os
 import sqlite3
-from transformers import T5Tokenizer, T5ForConditionalGeneration
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
 
 app = Flask(__name__)
@@ -30,12 +30,13 @@ def init_db():
 init_db()
 
 # ---------------- OCR MODEL ----------------
-reader = easyocr.Reader(['en'])
+reader = easyocr.Reader(['en','hi'])
 
 # ---------------- LLM MODEL ----------------
-model_name = "google/flan-t5-small"
-tokenizer = T5Tokenizer.from_pretrained(model_name)
-model = T5ForConditionalGeneration.from_pretrained(model_name)
+model_name = "google/mt5-small"
+
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
@@ -141,7 +142,7 @@ def upload():
 
         else:
 
-            prompt = f"Explain the meaning of this text in simple English: {extracted_text}"
+            prompt = f"translate Hindi to English: {extracted_text}"
 
             inputs = tokenizer(
                 prompt,
@@ -151,12 +152,14 @@ def upload():
 
             outputs = model.generate(
                 **inputs,
-                max_length=150,
-                num_beams=2,
+                max_length=200,
+                num_beams=4,
+                no_repeat_ngram_size=2,
                 early_stopping=True
             )
 
             meaning = tokenizer.decode(outputs[0], skip_special_tokens=True)
+            meaning = meaning.replace("<extra_id_0>", "").strip()
 
         return render_template(
             "index.html",
