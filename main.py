@@ -32,8 +32,9 @@ init_db()
 # ---------------- OCR MODEL ----------------
 reader = easyocr.Reader(['en','hi'])
 
-# ---------------- LLM MODEL ----------------
-model_name = "google/mt5-small"
+
+# llm model
+model_name = "Helsinki-NLP/opus-mt-hi-en"
 
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
@@ -42,7 +43,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
 
-# ---------------- REGISTER PAGE ----------------
+# register 
 @app.route('/register', methods=['GET','POST'])
 def register():
 
@@ -100,7 +101,7 @@ def login():
     return render_template("login.html")
 
 
-# ---------------- HOME PAGE ----------------
+# home page
 @app.route('/')
 def home():
 
@@ -110,15 +111,14 @@ def home():
     return render_template("index.html")
 
 
-# ---------------- LOGOUT ----------------
+# logout
 @app.route('/logout')
 def logout():
 
     session.pop('user', None)
     return redirect(url_for('login'))
 
-
-# ---------------- IMAGE UPLOAD ----------------
+# image uploading
 @app.route('/upload', methods=['POST'])
 def upload():
 
@@ -141,25 +141,19 @@ def upload():
             meaning = ""
 
         else:
-
-            prompt = f"translate Hindi to English: {extracted_text}"
-
             inputs = tokenizer(
-                prompt,
-                return_tensors="pt",
-                truncation=True
-            ).to(device)
+            extracted_text,
+            return_tensors="pt",
+            truncation=True
+        ).to(device)
 
-            outputs = model.generate(
-                **inputs,
-                max_length=200,
-                num_beams=4,
-                no_repeat_ngram_size=2,
-                early_stopping=True
-            )
+        outputs = model.generate(
+            **inputs,
+            max_length=200
+        )
 
-            meaning = tokenizer.decode(outputs[0], skip_special_tokens=True)
-            meaning = meaning.replace("<extra_id_0>", "").strip()
+        meaning = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        # meaning = meaning.replace("<extra_id_0>", "").strip()
 
         return render_template(
             "index.html",
@@ -170,6 +164,5 @@ def upload():
     return render_template("index.html")
 
 
-# ---------------- RUN SERVER ----------------
 if __name__ == "__main__":
     app.run(debug=True)
