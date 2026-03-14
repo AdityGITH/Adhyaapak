@@ -2,8 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session
 import easyocr
 import os
 import sqlite3
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-import torch
+import requests
 
 app = Flask(__name__)
 app.secret_key = "secret123"
@@ -30,20 +29,23 @@ def init_db():
 init_db()
 
 # ---------------- OCR MODEL ----------------
-reader = easyocr.Reader(['en','hi'])
+reader = easyocr.Reader(['en'])
 
 
-# llm model
-model_name = "Helsinki-NLP/opus-mt-hi-en"
+# ---------------- DICTIONARY FUNCTION ----------------
+def get_meaning(word):
+    try:
+        url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{word}"
+        response = requests.get(url).json()
 
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+        meaning = response[0]['meanings'][0]['definitions'][0]['definition']
+        return meaning
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model.to(device)
+    except:
+        return "Meaning not found"
 
 
-# register 
+# ---------------- REGISTER ----------------
 @app.route('/register', methods=['GET','POST'])
 def register():
 
@@ -101,7 +103,7 @@ def login():
     return render_template("login.html")
 
 
-# home page
+# ---------------- HOME PAGE ----------------
 @app.route('/')
 def home():
 
@@ -111,14 +113,15 @@ def home():
     return render_template("index.html")
 
 
-# logout
+# ---------------- LOGOUT ----------------
 @app.route('/logout')
 def logout():
 
     session.pop('user', None)
     return redirect(url_for('login'))
 
-# image uploading
+
+# ---------------- IMAGE UPLOAD + OCR ----------------
 @app.route('/upload', methods=['POST'])
 def upload():
 
@@ -132,6 +135,7 @@ def upload():
         image_path = os.path.join(UPLOAD_FOLDER, image.filename)
         image.save(image_path)
 
+        # OCR
         result = reader.readtext(image_path)
 
         extracted_text = " ".join([res[1] for res in result])
@@ -141,19 +145,10 @@ def upload():
             meaning = ""
 
         else:
-            inputs = tokenizer(
-            extracted_text,
-            return_tensors="pt",
-            truncation=True
-        ).to(device)
+            words = extracted_text.split()
 
-        outputs = model.generate(
-            **inputs,
-            max_length=200
-        )
-
-        meaning = tokenizer.decode(outputs[0], skip_special_tokens=True)
-        # meaning = meaning.replace("<extra_id_0>", "").strip()
+            main_word = words[0].lower()
+            meaning = get_meaning(main_word)
 
         return render_template(
             "index.html",
@@ -164,5 +159,6 @@ def upload():
     return render_template("index.html")
 
 
+# ---------------- RUN APP ----------------
 if __name__ == "__main__":
     app.run(debug=True)
