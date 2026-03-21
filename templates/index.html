@@ -14,12 +14,9 @@
 
         background:
           linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
-          url("/static/bg.jpg");
+          url("/static/bg.webp");
 
         background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-
         display: flex;
         justify-content: center;
         align-items: center;
@@ -34,86 +31,48 @@
         padding: 35px;
         width: 420px;
         text-align: center;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
       }
 
-      h2 {
-        margin-bottom: 25px;
-        font-weight: 500;
-        font-size: 20px;
-      }
-
-      /* REAL upload area */
       .upload-box {
         border: 2px dashed rgba(255, 255, 255, 0.2);
-        border-radius: 12px;
-        padding: 30px 20px;
-        cursor: pointer;
-        transition: 0.25s;
-        background: rgba(255, 255, 255, 0.02);
-      }
-
-      .upload-box:hover {
-        border-color: #7c3aed;
-        background: rgba(124, 58, 237, 0.08);
-      }
-
-      .upload-icon {
-        font-size: 28px;
-        margin-bottom: 10px;
-      }
-
-      .upload-text {
-        font-size: 14px;
-        opacity: 0.8;
+        padding: 20px;
+        border-radius: 10px;
       }
 
       input[type="file"] {
-        margin-top: 15px;
-        color: white;
-        font-size: 12px;
+        margin-top: 10px;
       }
 
       .btn {
-        margin-top: 18px;
-        background: #7c3aed;
+        margin-top: 15px;
+        background: purple;
+        padding: 10px;
         border: none;
-        padding: 12px;
         width: 100%;
-        border-radius: 10px;
         color: white;
-        font-size: 14px;
+        border-radius: 8px;
         cursor: pointer;
-        transition: 0.25s;
-      }
-
-      .btn:hover {
-        background: #6d28d9;
-      }
-
-      .preview {
-        margin-top: 20px;
       }
 
       .preview img {
         max-width: 100%;
+        margin-top: 10px;
         border-radius: 10px;
       }
 
       .result {
-        margin-top: 22px;
+        margin-top: 20px;
         background: rgba(124, 58, 237, 0.1);
-        padding: 14px;
-        border-radius: 10px;
+        padding: 12px;
+        border-radius: 8px;
         text-align: left;
-        font-size: 13px;
-        line-height: 1.5;
-      }
 
-      .footer {
-        margin-top: 15px;
-        font-size: 11px;
-        opacity: 0.4;
+        /* 🔥 ADD THESE */
+        max-height: 200px; /* limit height */
+        overflow-y: auto; /* vertical scroll */
+        word-wrap: break-word; /* break long words */
+        overflow-wrap: break-word;
+        white-space: pre-wrap; /* preserve spacing */
       }
     </style>
   </head>
@@ -124,15 +83,11 @@
 
       <form action="/upload" method="post" enctype="multipart/form-data">
         <div class="upload-box">
-          <div class="upload-icon">📂</div>
-          <div class="upload-text">Select an image</div>
-
-          <!-- IMPORTANT CHANGE HERE -->
           <input
             type="file"
             name="image"
             accept="image/*"
-            onchange="previewImage(event)"
+            onchange="preview(event)"
             required
           />
         </div>
@@ -153,18 +108,15 @@
         {{ meaning }}
       </div>
       {% endif %}
-
-      <div class="footer">Powered by EasyOCR</div>
     </div>
 
     <script>
-      function previewImage(event) {
+      function preview(e) {
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(e.target.files[0]);
+
         const preview = document.getElementById("preview");
         preview.innerHTML = "";
-
-        const img = document.createElement("img");
-        img.src = URL.createObjectURL(event.target.files[0]);
-
         preview.appendChild(img);
       }
     </script>
