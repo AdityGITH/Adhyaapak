@@ -1,70 +1,81 @@
 from flask import Flask, render_template, request
-import easyocr
 import os
 import cv2
+import pytesseract
 import requests
+import time
 
 app = Flask(__name__)
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# OCR
-reader = easyocr.Reader(['en'], gpu=False)
+# 👉 Set path if needed (Windows)
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
-# Dictionary
+
 def get_meaning(word):
     try:
         url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{word}"
-        response = requests.get(url).json()
-        return response[0]['meanings'][0]['definitions'][0]['definition']
+        response = requests.get(url, timeout=2)
+        data = response.json()
+        return data[0]['meanings'][0]['definitions'][0]['definition']
     except:
         return "Meaning not found"
+
 
 @app.route('/')
 def home():
     return render_template("index.html")
 
+
 @app.route('/upload', methods=['POST'])
 def upload():
-    image = request.files['image']
+    start = time.time()
 
-    if image:
-        image_path = os.path.join(UPLOAD_FOLDER, image.filename)
-        image.save(image_path)
+    image = request.files.get('image')
 
-        # ✅ BETTER PREPROCESSING (fix mismatch issue)
-        img = cv2.imread(image_path)
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        gray = cv2.resize(gray, None, fx=1.2, fy=1.2)
-        _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+    if not image:
+        return render_template("index.html", text="", meaning="No image")
 
-        cv2.imwrite(image_path, thresh)
+    image_path = os.path.join(UPLOAD_FOLDER, image.filename)
+    image.save(image_path)
 
-        # OCR
-        result = reader.readtext(image_path, detail=0)
+    img = cv2.imread(image_path)
 
-        # ✅ CLEAN TEXT (IMPORTANT FIX)
-        extracted_text = " ".join(result)
-        extracted_text = extracted_text.replace("\n", " ").strip()
+    if img is None:
+        return render_template("index.html", text="", meaning="Invalid image")
 
-        # remove double spaces
-        extracted_text = " ".join(extracted_text.split())
+    # 🚀 FAST PREPROCESSING
+    h, w = img.shape[:2]
 
-        # meaning
-        if extracted_text:
-            first_word = extracted_text.split()[0].lower()
-            meaning = get_meaning(first_word)
-        else:
-            meaning = ""
+    if w > 1000:
+        scale = 1000 / w
+        img = cv2.resize(img, (int(w * scale), int(h * scale)))
 
-        return render_template(
-            "index.html",
-            text=extracted_text,
-            meaning=meaning
-        )
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    return render_template("index.html")
+    # Optional threshold (improves clarity)
+    _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+
+    # 🚀 OCR (VERY FAST)
+    extracted_text = pytesseract.image_to_string(thresh)
+
+    extracted_text = extracted_text.replace("\n", " ").strip()
+    extracted_text = " ".join(extracted_text.split())
+
+    # Meaning
+    if extracted_text:
+        first_word = extracted_text.split()[0].lower()
+        meaning = get_meaning(first_word)
+    else:
+        meaning = ""
+
+    end = time.time()
+    print(f"⚡ Time: {round(end - start, 2)} sec")
+
+    return render_template("index.html", text=extracted_text, meaning=meaning)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
