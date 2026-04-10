@@ -21,7 +21,7 @@ Load model once
 Generate meaning after OCR
 Pass meaning to HTML
 
-Integrated Flan T5  |3/3/2026
+Integrated Flan T5  |3/3/2026 **
 
 updated baground    |5/3/2026
 
@@ -30,8 +30,29 @@ Integrated Authentication
     why needed: for verifying user identity, ensuring that only authorized individuals access sensitive data, networks, and systems
 
 
-* Milestone 3  Text-to-Speech
+E R R O R ::  issue in getting the exact or relative meaning of the text extracted 
 
+Integrated Helsinki 
+
+IndicTrans2+++++++++++++++
+
+Updation : 
+(Optimized the OCR pipeline by restricting recognition to English, resizing images with OpenCV preprocessing, and using faster EasyOCR settings to significantly reduce text extraction time.)
+
+    PROBLEM faced on 25 and 26th of march 2026: After uploading the image the model was taking lot of time to extract the text
+    so what i have done is instead of tradional OCR i integrated TESSERACT OCR which make models work easier and fast
+
+
+* Milestone 3  Text-to-Speech
+PROBLEM faced on 27 of march 2026:{
+    1. Text-to-Speech Issue:
+    Initially, the model became slow after adding TTS because gTTS is network-based and blocks execution.
+    This was solved by running TTS in a background thread, allowing OCR results to display instantly while audio is generated asynchronously.
+
+    2. Speech Stopping Midway:
+    The model stopped speaking due to unclean OCR text and long input handling by gTTS.
+    This was fixed by cleaning the extracted text (removing broken words) and splitting it into smaller chunks before generating and combining the audio.
+}
 
 
 

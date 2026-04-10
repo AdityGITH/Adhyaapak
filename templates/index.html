@@ -11,11 +11,9 @@
       body {
         margin: 0;
         font-family: "Segoe UI", sans-serif;
-
         background:
           linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
           url("/static/bg.webp");
-
         background-size: cover;
         display: flex;
         justify-content: center;
@@ -66,13 +64,9 @@
         padding: 12px;
         border-radius: 8px;
         text-align: left;
-
-        /* 🔥 ADD THESE */
-        max-height: 200px; /* limit height */
-        overflow-y: auto; /* vertical scroll */
-        word-wrap: break-word; /* break long words */
-        overflow-wrap: break-word;
-        white-space: pre-wrap; /* preserve spacing */
+        max-height: 200px;
+        overflow-y: auto;
+        white-space: pre-wrap;
       }
     </style>
   </head>
@@ -91,7 +85,6 @@
             required
           />
         </div>
-
         <button class="btn" type="submit">Extract Text</button>
       </form>
 
@@ -107,6 +100,8 @@
         <strong>Meaning:</strong><br /><br />
         {{ meaning }}
       </div>
+      {% endif %} {% if text %}
+      <button class="btn" onclick="playAudio()">🔊 Play Again</button>
       {% endif %}
     </div>
 
@@ -114,11 +109,32 @@
       function preview(e) {
         const img = document.createElement("img");
         img.src = URL.createObjectURL(e.target.files[0]);
-
         const preview = document.getElementById("preview");
         preview.innerHTML = "";
         preview.appendChild(img);
       }
+
+      function playAudio() {
+        const audio = new Audio("/static/speech.mp3");
+        audio.play();
+      }
+
+      // 🔥 AUTO PLAY WITH RETRY
+      function tryAutoPlay() {
+        const audio = new Audio("/static/speech.mp3");
+
+        audio.play().then(() => {
+          console.log("Auto play success");
+        }).catch(() => {
+          setTimeout(tryAutoPlay, 1000);
+        });
+      }
+
+      window.onload = function () {
+        {% if text %}
+        setTimeout(tryAutoPlay, 1500);
+        {% endif %}
+      };
     </script>
   </body>
 </html>
